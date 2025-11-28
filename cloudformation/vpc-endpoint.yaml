@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "VPC Endpoints - S3, DynamoDB y SSM (interface)"
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet::Id
+
+  SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: SG para endpoints Interface (ej. SSM)
+
+
+Resources:
+
+  VPCEndpointS3:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Gateway
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcId: !Ref VpcId
+      RouteTableIds:
+        - !Ref PrivateSubnet1RouteTable
+        - !Ref PrivateSubnet2RouteTable
+
+  VPCEndpointDDB:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Gateway
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.dynamodb"
+      VpcId: !Ref VpcId
+      RouteTableIds:
+        - !Ref PrivateSubnet1RouteTable
+        - !Ref PrivateSubnet2RouteTable
+
+  VPCEndpointSSM:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.ssm"
+      VpcId: !Ref VpcId
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !Ref SecurityGroupId
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+
+
+Outputs:
+  S3EndpointId:
+    Value: !Ref VPCEndpointS3
+
+  DynamoDBEndpointId:
+    Value: !Ref VPCEndpointDDB
+
+  SSMEndpointId:
+    Value: !Ref VPCEndpointSSM

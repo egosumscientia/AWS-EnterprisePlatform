@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "ASG con Launch Template y UserData simple, asociado a ALB"
+
+Parameters:
+
+  Environment:
+    Type: String
+    Default: dev
+
+  AmiId:
+    Type: AWS::EC2::Image::Id
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: ""
+
+  SecurityGroupEc2:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: SG para las instancias del ASG
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet::Id
+
+  TargetGroupArn:
+    Type: String
+    Description: Target Group ARN creado en alb.yaml
+
+
+Resources:
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Ref AmiId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+          - !Ref SecurityGroupEc2
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y nginx
+            systemctl enable nginx
+            systemctl start nginx
+
+            echo "<h1>ASG - ${Environment} - Instancia OK</h1>" > /usr/share/nginx/html/index.html
+
+      TagSpecifications:
+        - ResourceType: instance
+          Tags:
+            - Key: Environment
+              Value: !Ref Environment
+            - Key: Name
+              Value: !Sub "${Environment}-asg-instance"
+
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      MinSize: "1"
+      MaxSize: "2"
+      DesiredCapacity: "1"
+      TargetGroupARNs:
+        - !Ref TargetGroupArn
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 60
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+          PropagateAtLaunch: true
+        - Key: Name
+          Value: !Sub "${Environment}-asg"
+          PropagateAtLaunch: true
+
+
+Outputs:
+
+  ASGName:
+    Value: !Ref AutoScalingGroup
+
+  LaunchTemplateId:
+    Value: !Ref LaunchTemplate

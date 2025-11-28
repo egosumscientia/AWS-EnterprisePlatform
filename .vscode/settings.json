@@ -1,0 +1,23 @@
+{
+  "yaml.schemas": {
+    "https://d1uauaxba7bl26.cloudfront.net/latest/gzip/CloudFormationResourceSpecification.json": [
+      "**/*.yaml",
+      "**/*.yml"
+    ]
+  },
+  "yaml.customTags": [
+    "!Ref scalar",
+    "!Sub scalar",
+    "!GetAtt scalar",
+    "!Join sequence",
+    "!Select sequence",
+    "!Split sequence",
+    "!ImportValue scalar",
+    "!Equals sequence",
+    "!If sequence",
+    "!Not sequence",
+    "!And sequence",
+    "!Or sequence",
+    "!FindInMap sequence"
+  ]
+}

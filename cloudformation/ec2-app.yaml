@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "EC2 App individual en subnet privada"
+
+Parameters:
+
+  Environment:
+    Type: String
+    Default: dev
+
+  AmiId:
+    Type: AWS::EC2::Image::Id
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: ""
+
+  PrivateSubnetId:
+    Type: AWS::EC2::Subnet::Id
+
+  SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: SG para la instancia app (normalmente tráfico solo del ALB)
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+
+Resources:
+
+  AppEc2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG de aplicación
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref SecurityGroupId
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-app-sg"
+
+
+  AppEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref AmiId
+      SubnetId: !Ref PrivateSubnetId
+      SecurityGroupIds:
+        - !Ref AppEc2SecurityGroup
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-app-instance"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y nginx
+          systemctl enable nginx
+          systemctl start nginx
+          echo "<h1>EC2 APP - ${Environment} OK</h1>" > /usr/share/nginx/html/index.html
+
+
+Outputs:
+
+  AppInstanceId:
+    Value: !Ref AppEC2
+
+  AppInstancePrivateIp:
+    Value: !GetAtt AppEC2.PrivateIp
+
+  AppInstanceSecurityGroup:
+    Value: !Ref AppEc2SecurityGroup

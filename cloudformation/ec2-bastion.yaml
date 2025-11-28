@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "EC2 Bastion Host en subnet pública"
+
+Parameters:
+
+  Environment:
+    Type: String
+    Default: dev
+
+  AmiId:
+    Type: AWS::EC2::Image::Id
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+
+Resources:
+
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG para Bastion (SSH)
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-bastion-sg"
+
+  BastionEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref AmiId
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PublicSubnetId
+      SecurityGroupIds:
+        - !Ref BastionSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-bastion"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y htop telnet unzip git
+
+Outputs:
+
+  BastionInstanceId:
+    Value: !Ref BastionEC2
+
+  BastionPublicIp:
+    Value: !GetAtt BastionEC2.PublicIp
+
+  BastionSecurityGroupId:
+    Value: !Ref BastionSecurityGroup
