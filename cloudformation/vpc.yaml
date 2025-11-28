@@ -174,3 +174,8 @@ Outputs:
   PrivateSubnets:
     Description: Lista de subnets privadas
     Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ] ]
+
+  PrivateRouteTableId:
+    Description: "Route table privado"
+    Value: !Ref PrivateRouteTable
+

@@ -19,6 +19,10 @@ Parameters:
     Type: AWS::EC2::SecurityGroup::Id
     Description: SG para endpoints Interface (ej. SSM)
 
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable::Id
+    Description: Route Table privado compartido (priv-subnets)
+
 
 Resources:
 
@@ -29,8 +33,7 @@ Resources:
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
       VpcId: !Ref VpcId
       RouteTableIds:
-        - !Ref PrivateSubnet1RouteTable
-        - !Ref PrivateSubnet2RouteTable
+        - !Ref PrivateRouteTable
 
   VPCEndpointDDB:
     Type: AWS::EC2::VPCEndpoint
@@ -39,8 +42,7 @@ Resources:
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.dynamodb"
       VpcId: !Ref VpcId
       RouteTableIds:
-        - !Ref PrivateSubnet1RouteTable
-        - !Ref PrivateSubnet2RouteTable
+        - !Ref PrivateRouteTable
 
   VPCEndpointSSM:
     Type: AWS::EC2::VPCEndpoint
@@ -54,7 +56,6 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-
 
 Outputs:
   S3EndpointId:

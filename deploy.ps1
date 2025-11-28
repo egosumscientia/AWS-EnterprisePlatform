@@ -10,10 +10,10 @@ Write-Host "Validando CloudFormation templates..."
 
 aws cloudformation validate-template --template-body file://$BasePath/cloudformation/vpc.yaml           | Out-Null
 aws cloudformation validate-template --template-body file://$BasePath/cloudformation/vpc-endpoint.yaml  | Out-Null
-aws cloudformation validate-template --template-body file://$BasePath/cloudformation/alb.yaml                     | Out-Null
+aws cloudformation validate-template --template-body file://$BasePath/cloudformation/alb.yaml           | Out-Null
 aws cloudformation validate-template --template-body file://cloudformation/asg.yaml                     | Out-Null
-aws cloudformation validate-template --template-body file://$BasePath/cloudformation/ec2-bastion.yaml             | Out-Null
-aws cloudformation validate-template --template-body file://$BasePath/cloudformation/ec2-app.yaml                 | Out-Null
+aws cloudformation validate-template --template-body file://$BasePath/cloudformation/ec2-bastion.yaml   | Out-Null
+aws cloudformation validate-template --template-body file://$BasePath/cloudformation/ec2-app.yaml       | Out-Null
 
 Write-Host "Validación OK.`n"
 
@@ -77,7 +77,7 @@ $VpcOutputs = aws cloudformation describe-stacks `
 $VPC_ID = ($VpcOutputs.Stacks[0].Outputs | Where-Object {$_.OutputKey -eq "VpcId"}).OutputValue
 $PUBLIC_SUBNETS = ($VpcOutputs.Stacks[0].Outputs | Where-Object {$_.OutputKey -eq "PublicSubnets"}).OutputValue
 $PRIVATE_SUBNETS = ($VpcOutputs.Stacks[0].Outputs | Where-Object {$_.OutputKey -eq "PrivateSubnets"}).OutputValue
-
+$PRIVATE_RT = ($VpcOutputs.Stacks[0].Outputs | Where-Object {$_.OutputKey -eq "PrivateRouteTableId"}).OutputValue
 $PUBLIC_SUBNET_1, $PUBLIC_SUBNET_2 = $PUBLIC_SUBNETS -split ","
 $PRIVATE_SUBNET_1, $PRIVATE_SUBNET_2 = $PRIVATE_SUBNETS -split ","
 
@@ -120,15 +120,18 @@ Write-Host ""
 ##############################################
 
 Write-Host "Aplicando VPC Endpoints..."
+
 aws cloudformation deploy `
     --stack-name "$STACK_NAME-vpce" `
     --template-file cloudformation/vpc-endpoint.yaml `
     --region $REGION `
+    --capabilities CAPABILITY_NAMED_IAM `
     --parameter-overrides `
         VpcId=$VPC_ID `
         PrivateSubnet1=$PRIVATE_SUBNET_1 `
         PrivateSubnet2=$PRIVATE_SUBNET_2 `
-        SecurityGroupId=$ALB_SG
+        SecurityGroupId=$ALB_SG `
+        PrivateRouteTable=$PRIVATE_RT
 
 Write-Host ""
 
