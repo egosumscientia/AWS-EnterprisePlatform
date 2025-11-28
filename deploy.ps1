@@ -1,3 +1,4 @@
+$BasePath = (Get-Location).Path
 #requires -version 5.1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -7,12 +8,12 @@ $REGION = "us-east-1"
 
 Write-Host "Validando CloudFormation templates..."
 
-aws cloudformation validate-template --template-body file://cloudformation/vpc.yaml           | Out-Null
-aws cloudformation validate-template --template-body file://cloudformation/vpc-endpoint.yaml | Out-Null
-aws cloudformation validate-template --template-body file://cloudformation/alb.yaml           | Out-Null
-aws cloudformation validate-template --template-body file://cloudformation/asg.yaml           | Out-Null
-aws cloudformation validate-template --template-body file://cloudformation/ec2-bastion.yaml   | Out-Null
-aws cloudformation validate-template --template-body file://cloudformation/ec2-app.yaml       | Out-Null
+aws cloudformation validate-template --template-body file://$BasePath/cloudformation/vpc.yaml           | Out-Null
+aws cloudformation validate-template --template-body file://$BasePath/cloudformation/vpc-endpoint.yaml  | Out-Null
+aws cloudformation validate-template --template-body file://$BasePath/cloudformation/alb.yaml                     | Out-Null
+aws cloudformation validate-template --template-body file://cloudformation/asg.yaml                     | Out-Null
+aws cloudformation validate-template --template-body file://$BasePath/cloudformation/ec2-bastion.yaml             | Out-Null
+aws cloudformation validate-template --template-body file://$BasePath/cloudformation/ec2-app.yaml                 | Out-Null
 
 Write-Host "Validación OK.`n"
 
