@@ -1,0 +1,86 @@
+###############################
+# WINDOWS / POWERSHELL
+###############################
+*.psd1
+*.psm1
+*.ps1xml
+*.psc1
+*.pssc
+*.ps~          # PowerShell backups
+*.tmp
+*.bak
+*.swp
+Thumbs.db
+Desktop.ini
+
+
+###############################
+# AWS CLI / SESSION FILES
+###############################
+.aws/
+.aws-sam/
+.aws-build/
+.awscliv2/
+
+
+###############################
+# LOGS / OUTPUTS
+###############################
+*.log
+*.out
+*.err
+logs/
+debug.log
+
+
+###############################
+# PYTHON (si algún editor genera entornos)
+###############################
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+
+###############################
+# EDITORES / IDEs
+###############################
+.vscode/
+.idea/
+*.code-workspace
+*.sublime*
+*.iml
+
+
+###############################
+# SISTEMA / TEMPORAL
+###############################
+.DS_Store
+*.tmp
+*.temp
+tmp/
+temp/
+cache/
+*.lock
+
+
+###############################
+# ARCHIVOS COMPRIMIDOS
+###############################
+*.zip
+*.tar
+*.gz
+*.7z
+
+
+###############################
+# ARCHIVOS SENSIBLES
+###############################
+*.pem
+*.key
+*.env
+*.secrets
+*.cred
+*.config
+credentials
