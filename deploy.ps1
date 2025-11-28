@@ -131,7 +131,7 @@ aws cloudformation deploy `
         PrivateSubnet1=$PRIVATE_SUBNET_1 `
         PrivateSubnet2=$PRIVATE_SUBNET_2 `
         SecurityGroupId=$ALB_SG `
-        PrivateRouteTable=$PRIVATE_RT
+        PrivateRouteTableId=$PRIVATE_RT
 
 Write-Host ""
 

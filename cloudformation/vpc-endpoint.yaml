@@ -1,6 +1,3 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: "VPC Endpoints - S3, DynamoDB y SSM (interface)"
-
 Parameters:
   Environment:
     Type: String
@@ -17,9 +14,8 @@ Parameters:
 
   SecurityGroupId:
     Type: AWS::EC2::SecurityGroup::Id
-    Description: SG para endpoints Interface (ej. SSM)
 
-  PrivateRouteTable:
+  PrivateRouteTableId:
     Type: AWS::EC2::RouteTable::Id
     Description: Route Table privado compartido (priv-subnets)
 
@@ -33,7 +29,7 @@ Resources:
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
       VpcId: !Ref VpcId
       RouteTableIds:
-        - !Ref PrivateRouteTable
+        - !Ref PrivateRouteTableId
 
   VPCEndpointDDB:
     Type: AWS::EC2::VPCEndpoint
@@ -42,7 +38,7 @@ Resources:
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.dynamodb"
       VpcId: !Ref VpcId
       RouteTableIds:
-        - !Ref PrivateRouteTable
+        - !Ref PrivateRouteTableId
 
   VPCEndpointSSM:
     Type: AWS::EC2::VPCEndpoint
@@ -56,13 +52,3 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
-
-Outputs:
-  S3EndpointId:
-    Value: !Ref VPCEndpointS3
-
-  DynamoDBEndpointId:
-    Value: !Ref VPCEndpointDDB
-
-  SSMEndpointId:
-    Value: !Ref VPCEndpointSSM
