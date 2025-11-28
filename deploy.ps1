@@ -77,7 +77,7 @@ $VpcOutputs = aws cloudformation describe-stacks `
 $VPC_ID = ($VpcOutputs.Stacks[0].Outputs | Where-Object {$_.OutputKey -eq "VpcId"}).OutputValue
 $PUBLIC_SUBNETS = ($VpcOutputs.Stacks[0].Outputs | Where-Object {$_.OutputKey -eq "PublicSubnets"}).OutputValue
 $PRIVATE_SUBNETS = ($VpcOutputs.Stacks[0].Outputs | Where-Object {$_.OutputKey -eq "PrivateSubnets"}).OutputValue
-$PRIVATE_RT = ($VpcOutputs.Stacks[0].Outputs | Where-Object {$_.OutputKey -eq "PrivateRouteTableId"}).OutputValue
+$PRIVATE_RT = ($VpcOutputs.Stacks[0].Outputs | Where-Object { $_.OutputKey -ieq "PrivateRouteTableId" }).OutputValue
 $PUBLIC_SUBNET_1, $PUBLIC_SUBNET_2 = $PUBLIC_SUBNETS -split ","
 $PRIVATE_SUBNET_1, $PRIVATE_SUBNET_2 = $PRIVATE_SUBNETS -split ","
 
