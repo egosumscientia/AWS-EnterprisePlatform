@@ -19,15 +19,16 @@ Este proyecto despliega una plataforma mínima de nivel empresarial compuesta po
 
 ### Componentes principales
 
-| Componente        | Descripción                                     |
-| ----------------- | ----------------------------------------------- |
-| **VPC**           | 1 VPC / 2 subnets públicas / 2 subnets privadas |
-| **ALB**           | Internet-facing, asociado a Target Group HTTP   |
-| **ASG**           | 2–4 instancias Amazon Linux 2 con Nginx         |
-| **Bastion**       | EC2 pública con acceso SSH                      |
-| **App EC2**       | Instancia privada individual para pruebas       |
-| **NAT Gateway**   | Para tráfico saliente de instancias privadas    |
-| **VPC Endpoints** | Gateway (S3, DynamoDB) + Interface (SSM)        |
+| Componente         | Descripción                                                               |
+| ------------------ | ------------------------------------------------------------------------- |
+| **VPC**            | 1 VPC con 2 subnets públicas y 2 subnets privadas                         |
+| **ALB**            | Public-facing, asociado a Target Group HTTP                               |
+| **ASG**            | 2–4 instancias Amazon Linux 2 con Nginx                                   |
+| **Bastion**        | EC2 pública con acceso SSH                                                |
+| **App EC2**        | Instancia privada individual para pruebas                                 |
+| **NAT Gateway**    | Para tráfico saliente de instancias privadas                              |
+| **VPC Endpoints**  | Gateway (S3, DynamoDB) + Interface (SSM)                                  |
+| **RDS PostgreSQL** | Instancia privada db.t3.micro, PostgreSQL 15.x, acceso solo desde SGs VPC |
 
 ---
 
