@@ -20,7 +20,7 @@ Parameters:
 
   SecurityGroupEc2:
     Type: AWS::EC2::SecurityGroup::Id
-    Description: SG para las instancias del ASG
+    Description: SG del ALB (se usará como origen para tráfico HTTP)
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet::Id
@@ -32,8 +32,31 @@ Parameters:
     Type: String
     Description: Target Group ARN creado en alb.yaml
 
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
 
 Resources:
+
+  AsgSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG para instancias del ASG
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        # HTTP desde el ALB
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref SecurityGroupEc2
+        # SSH desde toda la VPC (incluye Bastion)
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-asg-sg"
 
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -43,7 +66,7 @@ Resources:
         InstanceType: !Ref InstanceType
         KeyName: !Ref KeyName
         SecurityGroupIds:
-          - !Ref SecurityGroupEc2
+          - !Ref AsgSecurityGroup
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash
@@ -72,9 +95,9 @@ Resources:
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
-      MinSize: "1"
-      MaxSize: "2"
-      DesiredCapacity: "1"
+      MinSize: "2"
+      MaxSize: "4"
+      DesiredCapacity: "2"
       TargetGroupARNs:
         - !Ref TargetGroupArn
       HealthCheckType: ELB
@@ -95,3 +118,6 @@ Outputs:
 
   LaunchTemplateId:
     Value: !Ref LaunchTemplate
+
+  AsgSecurityGroupId:
+    Value: !Ref AsgSecurityGroup

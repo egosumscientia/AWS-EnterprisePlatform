@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "RDS PostgreSQL económico en subnets privadas, acceso solo desde VPC"
+
+Parameters:
+
+  Environment:
+    Type: String
+    Default: dev
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet::Id
+
+  SecurityGroupAsg:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: SG del ASG
+
+  SecurityGroupApp:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: SG de la instancia EC2 privada (app)
+
+  SecurityGroupBastion:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: SG del Bastion Host
+
+  DBUsername:
+    Type: String
+    Default: admin
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    Description: "Contraseña del administrador DB"    
+
+Resources:
+
+  ##############################################
+  # 1. Security Group para RDS
+  ##############################################
+
+  RdsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Permite PostgreSQL desde ASG, APP y Bastion"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref SecurityGroupAsg
+
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref SecurityGroupApp
+
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref SecurityGroupBastion
+
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-rds-sg"
+
+
+  ##############################################
+  # 2. Subnet group para RDS (obligatorio)
+  ##############################################
+
+  RdsSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "Subnets privadas para RDS"
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      DBSubnetGroupName: !Sub "${Environment}-rds-subnet-group"
+
+
+  ##############################################
+  # 3. Instancia RDS PostgreSQL
+  ##############################################
+
+  RdsInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: postgres
+      EngineVersion: "15.3"
+      DBInstanceClass: db.t3.micro          # barato
+      AllocatedStorage: 20                  # mínimo recomendado
+      StorageType: gp2
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+
+      VPCSecurityGroups:
+        - !Ref RdsSecurityGroup
+
+      DBSubnetGroupName: !Ref RdsSubnetGroup
+
+      MultiAZ: false                        # barato
+      PubliclyAccessible: false             # privado siempre
+      BackupRetentionPeriod: 1
+      DeletionProtection: false
+
+      Tags:
+        - Key: Name
+          Value: !Sub "${Environment}-postgresql"
+
+Outputs:
+
+  RdsEndpoint:
+    Description: "Endpoint DNS del RDS"
+    Value: !GetAtt RdsInstance.Endpoint.Address
+
+  RdsPort:
+    Value: !GetAtt RdsInstance.Endpoint.Port
+
+  RdsSecurityGroupId:
+    Value: !Ref RdsSecurityGroup

@@ -182,19 +182,44 @@ aws ec2 describe-instances --query "Reservations[].Instances[].InstanceId"
 
 ---
 
-## 8. Extensiones futuras
+## 8. Base de datos RDS integrada
 
-El proyecto está preparado para extenderse hacia:
+El proyecto incluye ahora una base de datos **Amazon RDS PostgreSQL** económica, privada y totalmente integrada con la VPC.
 
-* Ansible roles para configuración de instancias
-* Pipelines CI/CD
-* Integración con SSM Session Manager
-* Módulos Terraform equivalentes
-* Logging y monitoreo (CloudWatch)
+### Características:
+
+* Motor: PostgreSQL 15.x
+* Instancia: **db.t3.micro** (barata)
+* Almacenamiento: 20 GB gp2
+* Despliegue en **subnets privadas**
+* Seguridad:
+
+  * Acceso solo desde ASG, App EC2 y Bastion
+  * No es pública
+* Subnet Group automático
+* Seguridad por SGs
+* Compatible con los scripts de deploy/destroy
+
+### Forma de conexión
+
+Después del despliegue, obtener el endpoint:
+
+```powershell
+aws cloudformation describe-stacks `
+  --stack-name aws-enterprise-platform-rds `
+  --query "Stacks[0].Outputs[?OutputKey=='RdsEndpoint'].OutputValue" `
+  --output text
+```
+
+Conectarse desde Bastion:
+
+```bash
+psql -h <endpoint> -U admin -d postgres
+```
 
 ---
 
-## 9. Licencia
+## 9. Licencia. Licencia
 
 Este proyecto es de uso libre para fines educativos o empresariales básicos.
 

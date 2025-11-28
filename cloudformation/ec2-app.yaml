@@ -23,7 +23,7 @@ Parameters:
 
   SecurityGroupId:
     Type: AWS::EC2::SecurityGroup::Id
-    Description: SG para la instancia app (normalmente tráfico solo del ALB)
+    Description: SG del ALB (origen HTTP hacia la app)
 
   VpcId:
     Type: AWS::EC2::VPC::Id
@@ -34,13 +34,19 @@ Resources:
   AppEc2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: SG de aplicación
+      GroupDescription: SG de aplicación EC2 individual
       VpcId: !Ref VpcId
       SecurityGroupIngress:
+        # HTTP desde ALB
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId: !Ref SecurityGroupId
+        # SSH desde toda la VPC (incluye Bastion)
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.0.0.0/16
       Tags:
         - Key: Name
           Value: !Sub "${Environment}-app-sg"

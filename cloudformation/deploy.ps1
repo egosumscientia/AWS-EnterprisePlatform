@@ -144,6 +144,7 @@ aws cloudformation deploy `
     --capabilities CAPABILITY_NAMED_IAM `
     --parameter-overrides `
         AmiId=$AMI_ID `
+        VpcId=$VPC_ID `
         PrivateSubnet1=$PRIVATE_SUBNET_1 `
         PrivateSubnet2=$PRIVATE_SUBNET_2 `
         SecurityGroupEc2=$ALB_SG `
@@ -186,3 +187,26 @@ aws cloudformation deploy `
 
 Write-Host ""
 Write-Host "DEPLOY COMPLETADO."
+
+
+##############################################
+# 9. DEPLOY RDS
+##############################################
+
+Write-Host "Aplicando RDS..."
+aws cloudformation deploy `
+    --stack-name "$STACK_NAME-rds" `
+    --template-file cloudformation/rds.yaml `
+    --region $REGION `
+    --capabilities CAPABILITY_NAMED_IAM `
+    --parameter-overrides `
+        VpcId=$VPC_ID `
+        PrivateSubnet1=$PRIVATE_SUBNET_1 `
+        PrivateSubnet2=$PRIVATE_SUBNET_2 `
+        SecurityGroupAsg=$ASG_SG `
+        SecurityGroupApp=$APP_SG `
+        SecurityGroupBastion=$BASTION_SG `
+        DBUsername=admin `
+        DBPassword="Password123!"
+
+Write-Host "RDS desplegado."
