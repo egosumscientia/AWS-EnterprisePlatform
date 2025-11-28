@@ -20,7 +20,8 @@ Parameters:
     Type: AWS::EC2::SecurityGroup::Id
 
   PrivateRouteTableId:
-    Type: AWS::EC2::RouteTable::Id
+    Type: String
+    AllowedPattern: "^rtb-[a-zA-Z0-9]+$"
     Description: Route Table privado compartido (priv-subnets)
 
 Resources:

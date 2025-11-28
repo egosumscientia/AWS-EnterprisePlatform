@@ -77,14 +77,14 @@ Resources:
 
             echo "<h1>ASG - ${Environment} - Instancia OK</h1>" > /usr/share/nginx/html/index.html
 
-      TagSpecifications:
-        - ResourceType: instance
-          Tags:
-            - Key: Environment
-              Value: !Ref Environment
-            - Key: Name
-              Value: !Sub "${Environment}-asg-instance"
-
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Environment
+                Value: !Ref Environment
+              - Key: Name
+                Value: !Sub "${Environment}-asg-instance"
+                
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
