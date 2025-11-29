@@ -199,7 +199,7 @@ aws cloudformation deploy `
         PrivateSubnet2=$PRIVATE_SUBNET_2 `
         SecurityGroupEc2=$ALB_SG `
         TargetGroupArn=$TG_ARN `
-        KeyName=lab_key
+        KeyName=aws-platform-key
 
 Require-Success "Fallo deploy del ASG"
 
@@ -237,7 +237,7 @@ aws cloudformation deploy `
         AmiId=$AMI_ID `
         VpcId=$VPC_ID `
         PublicSubnetId=$PUBLIC_SUBNET_1 `
-        KeyName=lab_key
+        KeyName=aws-platform-key
 
 Require-Success "Fallo deploy del Bastion"
 
@@ -279,7 +279,7 @@ aws cloudformation deploy `
         VpcId=$VPC_ID `
         PrivateSubnetId=$PRIVATE_SUBNET_1 `
         SecurityGroupId=$ALB_SG `
-        KeyName=lab_key
+        KeyName=aws-platform-key
 
 Require-Success "Fallo deploy del App EC2"
 
