@@ -69,7 +69,7 @@ aws-enterprise-platform/
 
 ## 3. Despliegue automatizado
 
-Ejecutar desde PowerShell:
+Ejecutar desde PowerShell en la raíz:
 
 ```powershell
 .\deploy.ps1

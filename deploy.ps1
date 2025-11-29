@@ -15,7 +15,7 @@ function Require-Success($Message) {
 Write-Host "Validando CloudFormation templates..."
 
 aws cloudformation validate-template --template-body file://cloudformation/vpc.yaml           | Out-Null
-Require-Success "Validación falló en vpc.yaml"
+Require-Success "Validacion fallo en vpc.yaml"
 
 aws cloudformation validate-template --template-body file://cloudformation/vpc-endpoint.yaml | Out-Null
 aws cloudformation validate-template --template-body file://cloudformation/alb.yaml          | Out-Null
@@ -24,7 +24,7 @@ aws cloudformation validate-template --template-body file://cloudformation/ec2-b
 aws cloudformation validate-template --template-body file://cloudformation/ec2-app.yaml      | Out-Null
 aws cloudformation validate-template --template-body file://cloudformation/rds.yaml          | Out-Null
 
-Write-Host "Validación OK.`n"
+Write-Host "Validacion OK.`n"
 
 
 ##############################################
@@ -74,7 +74,7 @@ aws cloudformation deploy `
     --capabilities CAPABILITY_NAMED_IAM `
     --parameter-overrides Az1=$AZ1 Az2=$AZ2
 
-Require-Success "Falló deploy de la VPC"
+Require-Success "Fallo deploy de la VPC"
 
 Write-Host "Obteniendo outputs de la VPC..."
 
@@ -82,7 +82,7 @@ $VpcJson = aws cloudformation describe-stacks `
     --region $REGION `
     --stack-name "$STACK_NAME-vpc" 2>$null
 
-Require-Success "describe-stacks FALLÓ. No existe stack VPC."
+Require-Success "describe-stacks FALLO. No existe stack VPC."
 
 $VpcOutputs = $VpcJson | ConvertFrom-Json
 
@@ -130,7 +130,7 @@ aws cloudformation deploy `
         PublicSubnet1=$PUBLIC_SUBNET_1 `
         PublicSubnet2=$PUBLIC_SUBNET_2
 
-Require-Success "Falló deploy del ALB"
+Require-Success "Fallo deploy del ALB"
 
 $AlbJson = aws cloudformation describe-stacks `
     --region $REGION `
@@ -174,7 +174,7 @@ aws cloudformation deploy `
         SecurityGroupId=$ALB_SG `
         PrivateRouteTableId=$PRIVATE_RT
 
-Require-Success "Falló deploy de VPCE"
+Require-Success "Fallo deploy de VPCE"
 
 Write-Host ""
 Write-Host "VPC ENDPOINTS OK."
@@ -201,12 +201,12 @@ aws cloudformation deploy `
         TargetGroupArn=$TG_ARN `
         KeyName=lab_key
 
-Require-Success "Falló deploy del ASG"
+Require-Success "Fallo deploy del ASG"
 
 $AsgJson = aws cloudformation describe-stacks `
     --region $REGION `
     --stack-name "$STACK_NAME-asg" 2>$null
-Require-Success "describe-stacks FALLÓ para ASG"
+Require-Success "describe-stacks FALLO para ASG"
 
 $AsgOutputs = $AsgJson | ConvertFrom-Json
 
@@ -239,7 +239,7 @@ aws cloudformation deploy `
         PublicSubnetId=$PUBLIC_SUBNET_1 `
         KeyName=lab_key
 
-Require-Success "Falló deploy del Bastion"
+Require-Success "Fallo deploy del Bastion"
 
 Write-Host "Bastion OK.`n"
 
@@ -273,6 +273,7 @@ aws cloudformation deploy `
     --region $REGION `
     --stack-name "$STACK_NAME-app" `
     --template-file cloudformation/ec2-app.yaml `
+    --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM `
     --parameter-overrides `
         AmiId=$AMI_ID `
         VpcId=$VPC_ID `
@@ -280,12 +281,12 @@ aws cloudformation deploy `
         SecurityGroupId=$ALB_SG `
         KeyName=lab_key
 
-Require-Success "Falló deploy del App EC2"
+Require-Success "Fallo deploy del App EC2"
 
 $AppJson = aws cloudformation describe-stacks `
     --region $REGION `
     --stack-name "$STACK_NAME-app" 2>$null
-Require-Success "describe-stacks FALLÓ para App"
+Require-Success "describe-stacks FALLO para App"
 
 $AppOutputs = $AppJson | ConvertFrom-Json
 
@@ -320,10 +321,9 @@ aws cloudformation deploy `
         SecurityGroupAsg=$ASG_SG `
         SecurityGroupApp=$APP_SG `
         SecurityGroupBastion=$BASTION_SG `
-        DBUsername=admin `
         DBPassword="Password123!"
 
-Require-Success "Falló deploy de RDS"
+Require-Success "Fallo deploy de RDS"
 
 Write-Host ""
 Write-Host "DEPLOY COMPLETADO."

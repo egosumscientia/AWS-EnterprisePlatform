@@ -30,7 +30,7 @@ Parameters:
 
   DBUsername:
     Type: String
-    Default: admin
+    Default: master
 
   DBPassword:
     Type: String
@@ -92,10 +92,11 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       Engine: postgres
-      EngineVersion: "15.3"
+      EngineVersion: !Ref "AWS::NoValue"
+      StorageType: gp3
+      AutoMinorVersionUpgrade: true
       DBInstanceClass: db.t3.micro          # barato
       AllocatedStorage: 20                  # mínimo recomendado
-      StorageType: gp2
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
 
