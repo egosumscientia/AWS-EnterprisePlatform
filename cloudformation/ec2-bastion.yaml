@@ -16,6 +16,7 @@ Parameters:
 
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
+    Default: aws-platform-key
 
   PublicSubnetId:
     Type: AWS::EC2::Subnet::Id
