@@ -277,6 +277,7 @@ aws cloudformation deploy `
         VpcId=$VPC_ID `
         PrivateSubnetId=$PRIVATE_SUBNET_1 `
         SecurityGroupId=$ALB_SG `
+        KeyName=aws-platform-key
 
 Require-Success "Fallo deploy del App EC2"
 

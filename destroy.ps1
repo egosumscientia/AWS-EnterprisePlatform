@@ -2,113 +2,72 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$STACK_NAME = "aws-enterprise-platform"
-$REGION     = "us-east-1"
+$STACK_PREFIX = "aws-enterprise-platform"
+$REGION       = "us-east-1"
 
-function Require-Success($Message) {
-    if (-not $?) {
-        Write-Host "ERROR: $Message"
-        exit 1
+function Stack-Exists {
+    param([string]$Name)
+    $result = aws cloudformation describe-stacks `
+        --stack-name $Name `
+        --region $REGION 2>$null
+    return $?
+}
+
+function Wait-Deletion {
+    param([string]$Name)
+    Write-Host "Esperando eliminación de: $Name"
+    aws cloudformation wait stack-delete-complete `
+        --stack-name $Name `
+        --region $REGION
+}
+
+function Delete-Stack {
+    param([string]$Name)
+
+    if (Stack-Exists -Name $Name) {
+        Write-Host "`n=== Eliminando stack: $Name ==="
+        aws cloudformation delete-stack `
+            --stack-name $Name `
+            --region $REGION
+        Wait-Deletion -Name $Name
+        Write-Host "=== Stack eliminado: $Name ==="
+    }
+    else {
+        Write-Host "`nStack no existe: $Name (omitido)"
     }
 }
 
-function Kill-ASG-Instances {
-    Write-Host "`n--- Deteniendo ASG e instancias ---"
+function Drain-ASG {
+    $asgName = "$STACK_PREFIX-asg"
+    Write-Host "`nDrenando ASG: $asgName"
 
-    $asgName = "$STACK_NAME-asg"
-
-    # 1. Escala el ASG a 0
     aws autoscaling update-auto-scaling-group `
         --auto-scaling-group-name $asgName `
         --min-size 0 `
         --max-size 0 `
         --desired-capacity 0 `
-        --region $REGION | Out-Null
+        --region $REGION 2>$null
 
-    Start-Sleep -Seconds 5
+    if (-not $?) { $Error.Clear() }
 
-    # 2. Obtener instancias del ASG
-    $instances = aws autoscaling describe-auto-scaling-instances `
-        --region $REGION `
-        --query "AutoScalingInstances[].InstanceId" `
-        --output text
-
-    if ($instances) {
-        Write-Host "Eliminando instancias del ASG: $instances"
-
-        aws ec2 terminate-instances `
-            --instance-ids $instances `
-            --region $REGION | Out-Null
-    }
-
-    Write-Host "--- ASG e instancias detenidas ---`n"
+    Start-Sleep -Seconds 10
 }
 
-function Kill-ENIs {
-    Write-Host "`n--- Eliminando ENIs huérfanos ---"
+# ORDEN CORRECTO, INFALIBLE
+Drain-ASG
 
-    $enis = aws ec2 describe-network-interfaces `
-        --region $REGION `
-        --query "NetworkInterfaces[?Status=='in-use'].NetworkInterfaceId" `
-        --output text
+$ORDER = @(
+    "$STACK_PREFIX-asg",
+    "$STACK_PREFIX-app",
+    "$STACK_PREFIX-bastion",
+    "$STACK_PREFIX-alb",
+    "$STACK_PREFIX-vpce",
+    "$STACK_PREFIX-rds",
+    "$STACK_PREFIX-vpc"
+)
 
-    foreach ($eni in $enis) {
-        Write-Host "Forzando eliminación ENI: $eni"
-        aws ec2 delete-network-interface `
-            --network-interface-id $eni `
-            --region $REGION 2>$null
-    }
-
-    Write-Host "--- ENIs procesados ---`n"
+foreach ($stack in $ORDER) {
+    Delete-Stack -Name $stack
 }
 
-function Remove-Stack {
-    param (
-        [Parameter(Mandatory = $true)][string]$Name
-    )
-
-    Write-Host "`nEliminando stack: $Name"
-
-    aws cloudformation delete-stack `
-        --stack-name $Name `
-        --region $REGION
-
-    Kill-ENIs
-
-    aws cloudformation wait stack-delete-complete `
-        --stack-name $Name `
-        --region $REGION
-
-    Write-Host "Stack eliminado: $Name"
-}
-
-
-##############################################
-# ORDEN CORRECTO DE ELIMINACIÓN
-##############################################
-
-# 0. Parar ASG antes que cualquier cosa
-Kill-ASG-Instances
-
-# 1. EC2 App
-Remove-Stack -Name "$STACK_NAME-app"
-
-# 2. Bastion
-Remove-Stack -Name "$STACK_NAME-bastion"
-
-# 3. ASG
-Remove-Stack -Name "$STACK_NAME-asg"
-
-# 4. RDS
-Remove-Stack -Name "$STACK_NAME-rds"
-
-# 5. VPCE
-Remove-Stack -Name "$STACK_NAME-vpce"
-
-# 6. ALB
-Remove-Stack -Name "$STACK_NAME-alb"
-
-# 7. VPC
-Remove-Stack -Name "$STACK_NAME-vpc"
-
-Write-Host "`nDESTRUCCION COMPLETADA."
+Write-Host "`n=== DESTRUCCIÓN COMPLETADA ==="
